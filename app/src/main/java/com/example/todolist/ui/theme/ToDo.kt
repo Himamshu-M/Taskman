@@ -41,9 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.DateFormat
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
 data class ShoppingItem @OptIn(ExperimentalMaterial3Api::class)
 constructor(val id: Int, var Task: String, var Description: String, var IsEditied: Boolean = false, var IsComplete: Boolean = false, var date1: Long?, var time_1:TimePickerState?)
@@ -56,6 +54,7 @@ fun ToDoListApp() {
     var TaskDescription by remember { mutableStateOf("") }
     var itemComplete by remember { mutableStateOf(false) }
     var itemEditied by remember { mutableStateOf(false) }
+
     var showDatePicker by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf<Long?>(null) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -197,6 +196,8 @@ fun ToDoListApp() {
                                     time_1=selectedTime
                                 )
                                 Items = Items + newItem
+                                
+
                                 itemComplete = false
                                 itemEditied=false
 
@@ -258,10 +259,6 @@ fun ShoppingListItem(item: ShoppingItem,
             )
 
             if (!isChecked) {
-                Row(
-                    modifier = Modifier
-                        .padding(8.dp)
-                ) {
                     IconButton(
                         onClick = onEditClick,
                     ) {
@@ -272,7 +269,6 @@ fun ShoppingListItem(item: ShoppingItem,
                     ) {
                         Icon(imageVector = Icons.Default.Delete, contentDescription = null)
                     }
-                }
             }
         }
         Text(
