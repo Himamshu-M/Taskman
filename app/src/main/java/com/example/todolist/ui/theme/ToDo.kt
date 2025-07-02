@@ -1,7 +1,6 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.example.todolist.ui.theme
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.DateFormat
 import java.util.Date
+import com.example.todolist.AlarmScheduler
+import androidx.compose.ui.platform.LocalContext
 
 data class ShoppingItem @OptIn(ExperimentalMaterial3Api::class)
 constructor(val id: Int, var Task: String, var Description: String, var IsEditied: Boolean = false, var IsComplete: Boolean = false, var date1: Long?, var time_1:TimePickerState?)
@@ -59,6 +60,10 @@ fun ToDoListApp() {
     var selectedDate by remember { mutableStateOf<Long?>(null) }
     var showTimePicker by remember { mutableStateOf(false) }
     var selectedTime: TimePickerState? by remember { mutableStateOf(null) }
+
+    val context = LocalContext.current
+    val alarmScheduler = remember { AlarmScheduler(context) }
+
     Column(
         modifier = Modifier.fillMaxSize().padding(12.dp),
         verticalArrangement = Arrangement.Center
@@ -85,6 +90,9 @@ fun ToDoListApp() {
                             editedItem?.let {
                                 it.Task = editedName
                                 it.Description = editedQuantity
+                                // If date or time changes, cancel old alarm and schedule new one
+                                // This part needs more complex logic if date/time can be edited in ShoppingItemEditor
+                                // For now, assuming date/time are set only during initial creation
                             }
                         }
                     )
@@ -97,7 +105,10 @@ fun ToDoListApp() {
                                 if (it.id == item.id) it.copy(IsEditied = isChecked) else it
                             }},
                         onEditClick = { Items = Items.map { it.copy(IsComplete = it.id == item.id) } },
-                        onDeleteClick = { Items = Items - item }
+                        onDeleteClick = {
+                            alarmScheduler.cancel(item) // Cancel alarm when item is deleted
+                            Items = Items - item
+                        }
                     )
                 }
             }
@@ -196,7 +207,11 @@ fun ToDoListApp() {
                                     time_1=selectedTime
                                 )
                                 Items = Items + newItem
-                                
+
+                                // Schedule alarm if date and time are set
+                                if (newItem.date1 != null && newItem.time_1 != null) {
+                                    alarmScheduler.schedule(newItem)
+                                }
 
                                 itemComplete = false
                                 itemEditied=false
@@ -218,6 +233,7 @@ fun ToDoListApp() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoppingListItem(item: ShoppingItem,
                      isChecked: Boolean,
@@ -259,16 +275,16 @@ fun ShoppingListItem(item: ShoppingItem,
             )
 
             if (!isChecked) {
-                    IconButton(
-                        onClick = onEditClick,
-                    ) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = null)
-                    }
-                    IconButton(
-                        onClick = onDeleteClick,
-                    ) {
-                        Icon(imageVector = Icons.Default.Delete, contentDescription = null)
-                    }
+                IconButton(
+                    onClick = onEditClick,
+                ) {
+                    Icon(imageVector = Icons.Default.Edit, contentDescription = null)
+                }
+                IconButton(
+                    onClick = onDeleteClick,
+                ) {
+                    Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+                }
             }
         }
         Text(
@@ -348,3 +364,4 @@ fun ShoppingItemEditor(item: ShoppingItem,onEditComplete: (String, String) -> Un
 fun ShoppingListPreview() {
     ToDoListApp()
 }
+
